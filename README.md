@@ -4,8 +4,8 @@
 [![npm version](https://img.shields.io/npm/v/envf?color=blue&&logo=npm)](https://www.npmjs.com/package/envf)
 [![downloads](https://img.shields.io/npm/dt/envf?color=brightgreen&)](https://www.npmjs.com/package/envf)
 ![license](https://img.shields.io/npm/l/envf)
-![typescript](https://img.shields.io/badge/Built%20With%20TypeScript-3178C6?&logo=typescript)
-![Node.js](https://img.shields.io/badge/Node.jse-43853D?&logo=node.js)
+![typescript](https://img.shields.io/badge/Built%20With%20TypeScript-000000?&logo=typescript)
+![Node.js](https://img.shields.io/badge/Node.js-000000?&logo=node.js)
 ![GitHub stars](https://img.shields.io/github/stars/nishuR31/envf?&logo=github)
 
 A lightweight, modular `.env` loader built for Node.js and TypeScript.  
@@ -56,8 +56,11 @@ console.log({
 | Function                             | Description                               |
 | ------------------------------------ | ----------------------------------------- |
 | `load(filePath?: string)`            | Load env file and return key-value pairs. |
+| `pathLoad(filePath?: string)`            | Relative path of env file and return key-value pairs. |
 | `setKeys(keys: string[])`            | Specify which keys to inject.             |
 | `setKey(key: string, value: string)` | Set a single key manually.                |
+| `getKey(key: string)`  | Return value of key manually.                |
+| `keys()` | Returns info of keys only.                |
 
 ---
 
