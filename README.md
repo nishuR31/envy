@@ -13,7 +13,7 @@ Inject only the keys you need — directly into `process.env` — no bloat, no o
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 npm install envf
@@ -43,11 +43,11 @@ console.log({
 
 ##  Why envf?
 
-✅ Load only the keys you want
-✅ Inject automatically into `process.env`
-✅ Works with `.env` or any custom env file path
-✅ Modular functions (`load`, `setKeys`, `getKey`, etc.)
-✅ TypeScript types + zero dependencies
+- [x] Load only the keys you want
+- [x] Inject automatically into `process.env`
+- [x] Works with `.env` or any custom env file path
+- [x] Modular functions (`load`, `setKeys`, `getKey`, etc.)
+- [x] TypeScript types + zero dependencies
 
 ---
 
