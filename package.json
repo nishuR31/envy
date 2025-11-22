@@ -1,6 +1,6 @@
 {
   "name": "envf",
-  "version": "3.0.1",
+  "version": "3.1.1",
   "description": "A simple easy modular isolated module type env manager to inject env keys to process.env",
   "keywords": [
     "env",

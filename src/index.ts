@@ -6,17 +6,29 @@ import fs from "node:fs";
 
 let envPath = (file: string): string | any => {
   try {
-    let filePath =
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        `../${file}`
-      ) ?? path.resolve(process.cwd(), file);
+    if (path.isAbsolute(file)) return file;
+
+    // Try project root first (correct behavior)
+    const cwdPath = path.resolve(process.cwd(), file);
+    if (fs.existsSync(cwdPath)) return cwdPath;
+
+    // Fallback: location relative to module file
+    const filePath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      file
+    );
     return filePath;
   } catch (err) {
     console.log(`${err}`);
     return `${err}`;
   }
 };
+
+let files: string[] = [];
+
+export function see(): void {
+  console.log(`Loaded env files: ${files}`);
+}
 
 let env: Record<string, string> = {};
 
@@ -45,6 +57,8 @@ export function pathLoad(file: string): typeof env | undefined | string {
     }
 
     console.log(`File on ${file} loaded successfully.`);
+    files.push(file);
+    setKeys(Object.keys(env), { override: true });
 
     return env;
   } catch (err) {
@@ -53,10 +67,35 @@ export function pathLoad(file: string): typeof env | undefined | string {
   }
 }
 
+export function autoLoad(options: { override?: boolean } = {}): typeof env {
+  const { override = true } = options;
+
+  const NODE_ENV = process.env.NODE_ENV || "development";
+
+  const candidates = [
+    `.env.${NODE_ENV}.local`,
+    `.env.local`,
+    `.env.${NODE_ENV}`,
+    `.env`,
+  ];
+
+  for (const file of candidates) {
+    const filePath = envPath(file);
+
+    if (fs.existsSync(filePath)) {
+      console.log(`🔹 Loading: ${filePath}`);
+      load(filePath); // your existing function
+      setKeys(Object.keys(env), { override });
+    }
+  }
+
+  return env;
+}
+
 export function load(file: string = ".env"): typeof env | undefined | string {
   try {
     let pathFile = envPath(file);
-    if (!fs.existsSync(envPath(file))) {
+    if (!fs.existsSync(pathFile)) {
       console.warn(`No ${file} file found at ${pathFile}`);
       env = process.env as Record<string, any>;
       return env;
@@ -77,7 +116,9 @@ export function load(file: string = ".env"): typeof env | undefined | string {
       if (cleanKey) env[cleanKey] = value;
     }
 
-    console.log(`File on ${pathFile} loaded successfully.`);
+    console.log(`File loaded ${pathFile}.`);
+    files.push(pathFile);
+    setKeys(Object.keys(env), { override: true });
 
     return env;
   } catch (err) {
@@ -88,10 +129,13 @@ export function load(file: string = ".env"): typeof env | undefined | string {
 
 export function setKey<T extends string>(key: T): T | undefined {
   try {
+    if (key.includes(" ")) console.warn(`⚠ Invalid key name: "${key}"`);
+
     if (!(key in env)) {
       console.warn(`Missing env key: ${key}`);
       return undefined;
     }
+
     process.env[key] = env[key]; //injection of keys in process.env
     return key;
   } catch (err) {
@@ -99,20 +143,31 @@ export function setKey<T extends string>(key: T): T | undefined {
   }
 }
 
-// ✅ Modern, optimized version
-export function setKeys<T extends string>(...keys: T[]): string {
+export function setKeys<T extends string>(
+  keys: T[],
+  options: { override?: boolean } = {}
+): string {
+  const { override = true } = options;
   try {
-    const result = [...keys].filter((key) => !(key in process.env)) as string[];
-    for (const key of result) {
-      if (!process.env[key] && env[key]) {
+    for (const key of keys) {
+      if (key.includes(" ")) {
+        console.warn(`Invalid key name: "${key}"`);
+        continue;
+      }
+
+      if (!(key in env)) {
+        console.warn(`Missing env key: ${key}`);
+        continue;
+      }
+
+      if (override || !(key in process.env)) {
         process.env[key] = env[key];
       }
     }
 
-    return `Added keys ${result}`;
+    return `Injected keys: ${keys.join(", ")}`;
   } catch (err) {
-    console.log(`${err}`);
-    return `${err}`;
+    return `Error: ${err}`;
   }
 }
 
@@ -139,7 +194,6 @@ export function getKey<T extends string>(key: T): string | undefined {
   return undefined;
 }
 
-let index = { load, setKey, setKeys, pathLoad, keys, getKey };
+let index = { load, setKey, setKeys, pathLoad, keys, getKey, see, autoLoad };
 
 export default index;
-
